@@ -5,6 +5,7 @@ export interface SavedContext {
     trackUri: string;
     index: Spicetify.PlayerIndex;
     progressMs: number;
+    isShuffled: boolean;
 }
 
 function getStack(): SavedContext[] {

@@ -1,21 +1,29 @@
-import { popContext, pushContext, SavedContext } from "./contextHistory";
+import {
+    clearContextHistory,
+    popContext,
+    pushContext,
+    SavedContext,
+} from "./contextHistory";
+import { Logger } from "./logger";
 
 let lastContext: SavedContext | null = null;
 
 const player = Spicetify.Platform.PlayerAPI;
 
 function startContextTracker() {
-    Spicetify.Player.addEventListener("songchange", () => {
-        console.log("song changing");
+    Spicetify.Player.addEventListener("songchange", async () => {
+        Logger.info("song changing");
         const data = Spicetify.Player.data;
-        console.log(data);
+        const isShuffled = Spicetify.Player.getShuffle();
+
         const newContext = {
             contextUri: data?.context.uri,
             trackUri: data?.item.uri,
             index: data?.index,
             progressMs: data?.positionAsOfTimestamp,
+            isShuffled,
         };
-        console.log("newContext", newContext);
+        Logger.info("newContext", newContext);
 
         if (newContext && newContext !== lastContext) {
             if (lastContext) {
@@ -27,15 +35,19 @@ function startContextTracker() {
 }
 
 async function goBackToPreviousContext() {
-    const queue = await Spicetify.Platform.PlayerAPI.getQueue();
-    console.log("Current queue:", queue);
-
     const prevContext = popContext();
     if (
         prevContext?.contextUri &&
         typeof prevContext.index.itemIndex === "number"
     ) {
-        console.log("restoring previous context:", prevContext);
+        Logger.info("restoring previous context:", prevContext);
+
+        // this must go before playUri()
+        if (Spicetify.Player.getShuffle() !== prevContext.isShuffled) {
+            Spicetify.Player.setShuffle(prevContext.isShuffled);
+            // artificial delay so setShuffle can do its thang
+            await new Promise((r) => setTimeout(r, 250));
+        }
 
         Spicetify.Player.playUri(
             prevContext.contextUri,
@@ -50,27 +62,37 @@ async function goBackToPreviousContext() {
             }
         );
     } else {
-        console.log("No previous context");
+        Logger.info("No previous context");
     }
 }
 
 async function main() {
+    Logger.info("Starting context-history");
     while (!Spicetify?.showNotification) {
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    // Show message on start.
-    Spicetify.showNotification("Context History loaded 20:09!");
+    Spicetify.showNotification("Context History loaded");
 
     startContextTracker();
-    console.log("main");
 
-    const button = new Spicetify.Playbar.Button(
-        "Go to Previous Context",
+    new Spicetify.Playbar.Button(
+        "Go to previous context",
         "chevron-left",
         (self) => {
             Spicetify.showNotification("Back");
             goBackToPreviousContext();
+        },
+        false, // Whether the button is disabled.
+        false // Whether the button is active.
+    );
+
+    new Spicetify.Playbar.Button(
+        "Clear context history",
+        "x",
+        (self) => {
+            Spicetify.showNotification("Cleared context history");
+            clearContextHistory();
         },
         false, // Whether the button is disabled.
         false // Whether the button is active.
