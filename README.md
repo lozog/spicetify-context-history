@@ -1,16 +1,12 @@
-# Spicetify Creator
+# Context History Buttons
 
-Spicetify Creator is a tool to compile modern Typescript/Javascript code to Spicetify extensions and custom apps.
+## Build Instructions
 
-## Features
-- Typescript and React syntax
-- Import node packages
-- CSS/SCSS with PostCSS support
-- Extremely fast compile time with esbuild.
-- Plugins
-
-## Docs
-Check out [Spicetify's docs](https://spicetify.app/docs/development/spicetify-creator/the-basics)!
+```
+npm run build && cp dist/context-history.js ~/.spicetify/Extensions
+spicetify apply
+```
 
 ## Made with Spicetify Creator
-- https://github.com/spicetify/spicetify-creator
+
+-   https://github.com/spicetify/spicetify-creator
