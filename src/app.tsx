@@ -15,6 +15,10 @@ function startContextTracker() {
         Logger.info("song changing");
         const data = Spicetify.Player.data;
         const isShuffled = Spicetify.Player.getShuffle();
+        const queueData = await Spicetify.Platform.PlayerAPI.getQueue();
+        const nextFrom = queueData.nextUp.map(
+            (track: Spicetify.PlayerTrack) => track.uri
+        );
 
         const newContext = {
             contextUri: data?.context.uri,
@@ -22,6 +26,7 @@ function startContextTracker() {
             index: data?.index,
             progressMs: data?.positionAsOfTimestamp,
             isShuffled,
+            nextFrom,
         };
         Logger.info("newContext", newContext);
 
@@ -36,34 +41,52 @@ function startContextTracker() {
 
 async function goBackToPreviousContext() {
     const prevContext = popContext();
-    if (
-        prevContext?.contextUri &&
-        typeof prevContext.index.itemIndex === "number"
-    ) {
-        Logger.info("restoring previous context:", prevContext);
-
-        // this must go before playUri()
-        if (Spicetify.Player.getShuffle() !== prevContext.isShuffled) {
-            Spicetify.Player.setShuffle(prevContext.isShuffled);
-            // artificial delay so setShuffle can do its thang
-            await new Promise((r) => setTimeout(r, 250));
-        }
-
-        Spicetify.Player.playUri(
-            prevContext.contextUri,
-            {
-                featureIdentifier: "context_back_button",
-            },
-            {
-                skipTo: {
-                    index: prevContext.index.itemIndex,
-                    pageIndex: prevContext.index.pageIndex,
-                },
-            }
-        );
-    } else {
-        Logger.info("No previous context");
+    if (!prevContext) {
+        Spicetify.showNotification("No previous context");
+        return;
     }
+
+    Logger.info("restoring previous context:", prevContext);
+
+    // TODO: restore songs from previous context into current nextUp queue
+    //   Spicetify.Platform.PlayerAPI.addToQueue = (items) => {
+    //     Spicetify.Platform.PlayerAPI._queue.insertIntoQueue(
+    //         items.map((i) => ({ uri: i.uri, provider: "context" })),
+    //         { before: Spicetify.Platform.PlayerAPI._queue.getQueue().nextUp[0] }
+    //     );
+    // };
+
+    // Force deterministic playback
+    await Spicetify.Player.setShuffle(false);
+    await new Promise((r) => setTimeout(r, 200));
+
+    Spicetify.Player.playUri(
+        prevContext.contextUri,
+        {
+            featureIdentifier: "context_back_button",
+        },
+        {
+            skipTo: {
+                index: prevContext.index.itemIndex,
+                pageIndex: prevContext.index.pageIndex ?? 0,
+            },
+        }
+    );
+
+    //   // TODO: Restore playback position
+    //   if (prevContext.progressMs) {
+    //     setTimeout(() => {
+    //         Spicetify.Player.seek(prevContext.progressMs);
+    //     }, 1000); // wait for track to load
+    // }
+
+    // Restore Next From queue manually
+    if (prevContext.nextFrom?.length) {
+        for (const uri of prevContext.nextFrom) {
+            Spicetify.Platform.PlayerAPI._queueURI(uri);
+        }
+    }
+    Spicetify.showNotification("Restored context and Next From");
 }
 
 async function main() {

@@ -6,6 +6,7 @@ export interface SavedContext {
     index: Spicetify.PlayerIndex;
     progressMs: number;
     isShuffled: boolean;
+    nextFrom?: string[];
 }
 
 function getStack(): SavedContext[] {
