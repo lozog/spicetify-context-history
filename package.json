@@ -6,6 +6,7 @@
         "build": "spicetify-creator --out=dist",
         "build-local": "spicetify-creator --out=dist --minify",
         "build-and-copy": "npm run build && cp dist/context-history.js ~/.spicetify/Extensions",
+        "clear-cache": "rm ~/.config/spicetify/Extensions/context-history.js",
         "watch": "spicetify-creator --watch"
     },
     "license": "MIT",
