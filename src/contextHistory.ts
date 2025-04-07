@@ -3,10 +3,10 @@ const STORAGE_KEY = "contextStack";
 export interface SavedContext {
     contextUri: string;
     trackUri: string;
+    trackName: string;
     index: Spicetify.PlayerIndex;
     progressMs: number;
     isShuffled: boolean;
-    // nextFrom: string[];
     nextFrom?: Spicetify.PlayerTrack[];
 }
 
