@@ -72,7 +72,7 @@ async function goBackToPreviousContext() {
 
     Logger.info("restoring previous context:", prevContext);
 
-    Spicetify.Player.playUri(
+    await Spicetify.Player.playUri(
         prevContext.contextUri,
         {
             featureIdentifier: "context_back_button",
@@ -86,23 +86,8 @@ async function goBackToPreviousContext() {
     );
 
     if (prevContext.nextFrom?.length) {
-        addToNext(prevContext.nextFrom);
+        await addToNext(prevContext.nextFrom);
 
-        // const insertions = prevContext.nextFrom.map((uri) => ({
-        //     uri,
-        //     // uri: track.uri,
-        //     provider: "context",
-        // }));
-        // const queue = await Spicetify.Platform.PlayerAPI._queue.getQueue();
-        // Logger.info([insertions[0]]);
-        // Logger.info("next up before:", queue);
-
-        // Spicetify.Platform.PlayerAPI._queue.insertIntoQueue([insertions[0]], {
-        //     before: queue.nextUp[0],
-        // });
-        // const queueAfter = await Spicetify.Platform.PlayerAPI._queue.getQueue();
-
-        // Logger.info("next up after:", queueAfter);
         Spicetify.showNotification("Restored context and Next From");
     }
 }
@@ -114,35 +99,21 @@ async function addToNext(tracks: Spicetify.PlayerTrack[]) {
 
     const queue = await Spicetify.Platform.PlayerAPI.getQueue();
     Logger.info("queue:", queue);
-    if (queue.queued.length > 0) {
-        //Not empty, add all the tracks before first track
-        const beforeTrack = {
-            uri: queue.queued[0].uri,
-            uid: queue.queued[0].uid,
-        };
-        await Spicetify.Platform.PlayerAPI.insertIntoQueue(uriObjects, {
-            before: beforeTrack,
-        })
-            .then(() => Spicetify.showNotification("Added to Play Next"))
-            .catch((err) => {
-                console.error("Failed to add to queue", err);
-                Spicetify.showNotification(
-                    "Unable to Add! Check Console.",
-                    true
-                );
-            });
-    } else {
-        //if queue is empty, simply add to queue
-        await Spicetify.addToQueue(uriObjects)
-            .then(() => Spicetify.showNotification("Added to Play Next"))
-            .catch((err) => {
-                console.error("Failed to add to queue", err);
-                Spicetify.showNotification(
-                    "Unable to Add! Check Console.",
-                    true
-                );
-            });
-    }
+    const beforeTrack = {
+        uri: queue.nextUp[0].uri,
+        uid: queue.nextUp[0].uid,
+    };
+
+    // TODO: instead of just inserting into queue, check if it's already in there and reorder instead
+
+    await Spicetify.Platform.PlayerAPI.insertIntoQueue(uriObjects, {
+        before: beforeTrack,
+    })
+        .then(() => Spicetify.showNotification("Added to Play Next"))
+        .catch((err) => {
+            console.error("Failed to add to queue", err);
+            Spicetify.showNotification("Unable to Add! Check Console.", true);
+        });
 }
 
 async function main() {
