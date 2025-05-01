@@ -3,9 +3,9 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "build": "spicetify-creator --out=dist",
-        "build-local": "spicetify-creator --out=dist --minify",
-        "build-and-copy": "npm run build && cp dist/context-history.js ~/.spicetify/Extensions",
+        "build": "spicetify-creator --out=dist --minify",
+        "build-local": "spicetify-creator --out=dist",
+        "build-and-copy": "npm run build-local && cp dist/context-history.js ~/.spicetify/Extensions",
         "clear-cache": "rm ~/.config/spicetify/Extensions/context-history.js",
         "watch": "spicetify-creator --watch"
     },

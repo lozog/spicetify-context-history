@@ -3,8 +3,7 @@
 ## Build Instructions
 
 ```
-npm run build && cp dist/context-history.js ~/.spicetify/Extensions
-spicetify apply
+npm run build-and-copy && spicetify apply
 ```
 
 ## Made with Spicetify Creator
