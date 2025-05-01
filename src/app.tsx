@@ -87,32 +87,53 @@ async function goBackToPreviousContext() {
     );
 
     if (prevContext.nextFrom?.length) {
-        await addToNext(prevContext.nextFrom);
+        await addTracksToNextUpQueue(prevContext.nextFrom);
 
         Spicetify.showNotification("Restored context and Next From");
     }
 }
 
-async function addToNext(tracks: Spicetify.PlayerTrack[]) {
+/**
+ * Given a list of tracks, insert them at the top of the nextUp queue.
+ * Removes any previously existing instances of those tracks from the nextUp queue
+ */
+async function addTracksToNextUpQueue(tracks: Spicetify.PlayerTrack[]) {
     Logger.debug("addToNext", tracks);
     const uriObjects = tracks.map((track) => ({ uri: track.uri }));
+    const uriList = uriObjects.reduce<string[]>((acc, uriObject) => {
+        acc.push(uriObject.uri);
+        return acc;
+    }, []);
     Logger.debug("uriObjects:", uriObjects);
 
     const queue = await Spicetify.Platform.PlayerAPI.getQueue();
     Logger.debug("queue:", queue);
+
+    // save a list of the current nextUp queue so we can remove them later
+    const replacedTracks: Spicetify.PlayerTrack[] = queue.nextUp.filter(
+        (track: Spicetify.PlayerTrack) => uriList.includes(track.uri)
+    );
+
     const beforeTrack = {
-        uri: queue.nextUp[0].uri,
-        uid: queue.nextUp[0].uid,
+        uri: queue.nextUp[0]?.uri,
+        uid: queue.nextUp[0]?.uid,
     };
 
-    // TODO: instead of just inserting into queue, check if it's already in there and reorder instead
-
+    // put the new songs in the nextUp queue
     await Spicetify.Platform.PlayerAPI.insertIntoQueue(uriObjects, {
-        before: beforeTrack,
+        ...(beforeTrack.uri ? { before: beforeTrack } : {}),
     })
         .then(() => Spicetify.showNotification("Added to Play Next"))
         .catch((err) => {
             console.error("Failed to add to queue", err);
+            Spicetify.showNotification("Unable to Add! Check Console.", true);
+        });
+
+    // remove the songs we replaced
+    await Spicetify.Platform.PlayerAPI.removeFromQueue(replacedTracks)
+        .then(() => Spicetify.showNotification("Removed from Play Next"))
+        .catch((err) => {
+            console.error("Failed to remove from queue", err);
             Spicetify.showNotification("Unable to Add! Check Console.", true);
         });
 }
