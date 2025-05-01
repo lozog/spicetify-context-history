@@ -93,12 +93,12 @@ async function goBackToPreviousContext() {
 }
 
 async function addToNext(tracks: Spicetify.PlayerTrack[]) {
-    Logger.info("addToNext", tracks);
+    Logger.debug("addToNext", tracks);
     const uriObjects = tracks.map((track) => ({ uri: track.uri }));
-    Logger.info("uriObjects:", uriObjects);
+    Logger.debug("uriObjects:", uriObjects);
 
     const queue = await Spicetify.Platform.PlayerAPI.getQueue();
-    Logger.info("queue:", queue);
+    Logger.debug("queue:", queue);
     const beforeTrack = {
         uri: queue.nextUp[0].uri,
         uid: queue.nextUp[0].uid,
@@ -129,7 +129,7 @@ async function main() {
     new Spicetify.Playbar.Button(
         "Go to previous context",
         "chevron-left",
-        (self) => {
+        () => {
             Spicetify.showNotification("Back");
             goBackToPreviousContext();
         },
@@ -140,7 +140,7 @@ async function main() {
     new Spicetify.Playbar.Button(
         "Clear context history",
         "x",
-        (self) => {
+        () => {
             Spicetify.showNotification("Cleared context history");
             clearContextHistory();
         },

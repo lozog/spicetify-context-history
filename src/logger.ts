@@ -1,10 +1,11 @@
 export class Logger {
     static ENABLED: boolean;
+    static VERBOSE: boolean;
 
     // Logs a debug message if the Logger is enabled and verbose.
-    // static debug(...args) {
-    //     if (Logger.VERBOSE) Logger.info(...args);
-    // }
+    static debug(...args) {
+        if (Logger.VERBOSE) Logger.info(...args);
+    }
 
     // Logs an information message if the Logger is enabled.
     static info(...args) {
@@ -23,3 +24,4 @@ export class Logger {
 }
 
 Logger.ENABLED = true;
+Logger.VERBOSE = false;
