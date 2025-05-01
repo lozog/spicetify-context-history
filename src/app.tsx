@@ -1,6 +1,7 @@
 import {
     clearContextHistory,
     popContext,
+    printContextHistory,
     pushContext,
     SavedContext,
 } from "./contextHistory";
@@ -143,6 +144,16 @@ async function main() {
         () => {
             Spicetify.showNotification("Cleared context history");
             clearContextHistory();
+        },
+        false, // Whether the button is disabled.
+        false // Whether the button is active.
+    );
+
+    new Spicetify.Playbar.Button(
+        "Print context history",
+        "voice",
+        () => {
+            printContextHistory();
         },
         false, // Whether the button is disabled.
         false // Whether the button is active.
