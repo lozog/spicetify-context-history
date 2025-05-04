@@ -1,6 +1,6 @@
 # Context History Buttons
 
-## Build Instructions
+## Installation
 
 ```
 npm run build-and-copy && spicetify apply
