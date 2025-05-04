@@ -7,6 +7,13 @@ import {
 } from "./contextHistory";
 import { Logger } from "./logger";
 
+declare global {
+    interface Window {
+        printContextHistory: typeof printContextHistory;
+        clearContextHistory: typeof clearContextHistory;
+    }
+}
+
 let lastContext: SavedContext | null = null;
 let lastContextUri: string | null = null;
 
@@ -29,7 +36,7 @@ function startContextTracker() {
                 lastContextUri && newContextUri !== lastContextUri;
 
             if (contextChanged) {
-                console.log(
+                Logger.debug(
                     "Context changed from",
                     lastContextUri,
                     "to",
@@ -89,7 +96,7 @@ async function goBackToPreviousContext() {
     if (prevContext.nextFrom?.length) {
         await addTracksToNextUpQueue(prevContext.nextFrom);
 
-        Spicetify.showNotification("Restored context and Next From");
+        Logger.info("Restored context and Next From");
     }
 }
 
@@ -123,17 +130,17 @@ async function addTracksToNextUpQueue(tracks: Spicetify.PlayerTrack[]) {
     await Spicetify.Platform.PlayerAPI.insertIntoQueue(uriObjects, {
         ...(beforeTrack.uri ? { before: beforeTrack } : {}),
     })
-        .then(() => Spicetify.showNotification("Added to Play Next"))
+        .then(() => Logger.info("Added to Play Next"))
         .catch((err) => {
-            console.error("Failed to add to queue", err);
+            Logger.error("Failed to add to queue", err);
             Spicetify.showNotification("Unable to Add! Check Console.", true);
         });
 
     // remove the songs we replaced
     await Spicetify.Platform.PlayerAPI.removeFromQueue(replacedTracks)
-        .then(() => Spicetify.showNotification("Removed from Play Next"))
+        .then(() => Logger.info("Removed from Play Next"))
         .catch((err) => {
-            console.error("Failed to remove from queue", err);
+            Logger.error("Failed to remove from queue", err);
             Spicetify.showNotification("Unable to Add! Check Console.", true);
         });
 }
@@ -144,7 +151,7 @@ async function main() {
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    Spicetify.showNotification("Context History loaded");
+    Logger.debug("Context History loaded");
 
     startContextTracker();
 
@@ -158,27 +165,9 @@ async function main() {
         false, // Whether the button is disabled.
         false // Whether the button is active.
     );
-
-    new Spicetify.Playbar.Button(
-        "Clear context history",
-        "x",
-        () => {
-            Spicetify.showNotification("Cleared context history");
-            clearContextHistory();
-        },
-        false, // Whether the button is disabled.
-        false // Whether the button is active.
-    );
-
-    new Spicetify.Playbar.Button(
-        "Print context history",
-        "voice",
-        () => {
-            printContextHistory();
-        },
-        false, // Whether the button is disabled.
-        false // Whether the button is active.
-    );
 }
+
+window.printContextHistory = printContextHistory;
+window.clearContextHistory = clearContextHistory;
 
 export default main;

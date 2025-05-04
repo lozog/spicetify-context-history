@@ -1,3 +1,5 @@
+import { Logger } from "./logger";
+
 const STORAGE_KEY = "contextStack";
 const MAX_STACK_SIZE = 3;
 
@@ -28,7 +30,7 @@ export function pushContext(uri: SavedContext) {
     stack.push(uri);
 
     if (stack.length > MAX_STACK_SIZE) {
-        console.log("Max stack size reached. Removing oldest items.");
+        Logger.info("Max stack size reached. Removing oldest items.");
         stack.splice(0, stack.length - MAX_STACK_SIZE); // remove oldest items
     }
 
