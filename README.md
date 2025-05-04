@@ -2,6 +2,10 @@
 
 This extension gives you a history for your playing context. A context is the song that's playing, where it's playing from, and the 'next up' queue.
 
+Use this back button to restore previous context.
+
+![Preview screenshot](screenshots/preview.png)
+
 ## Manual Installation
 
 ```
