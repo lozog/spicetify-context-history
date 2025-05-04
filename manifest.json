@@ -1,0 +1,7 @@
+{
+    "name": "Context History",
+    "description": "Adds a button to go back to previous playing context - restores previous song playing and next up queue.",
+    "preview": "screenshots/preview.png",
+    "main": "dist/context-history.js",
+    "readme": "README.md"
+}

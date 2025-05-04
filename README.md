@@ -1,10 +1,16 @@
-# Context History Buttons
+# Context History
 
-## Installation
+This extension gives you a history for your playing context. A context is the song that's playing, where it's playing from, and the 'next up' queue.
+
+## Manual Installation
 
 ```
 npm run build-and-copy && spicetify apply
 ```
+
+## Debugging
+
+`printContextHistory()` and `clearContextHistory()` methods are available globally in the console.
 
 ## Made with Spicetify Creator
 
