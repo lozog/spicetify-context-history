@@ -14,10 +14,8 @@ declare global {
     }
 }
 
-let lastContext: SavedContext | null = null;
-let lastContextUri: string | null = null;
-
-const player = Spicetify.Platform.PlayerAPI;
+let prevContext: SavedContext | null = null;
+let prevContextUri: string | null = null;
 
 function startContextTracker() {
     Spicetify.Player.addEventListener("songchange", async () => {
@@ -32,18 +30,7 @@ function startContextTracker() {
 
             const newContextUri = data.context.uri;
 
-            const contextChanged =
-                lastContextUri && newContextUri !== lastContextUri;
-
-            if (contextChanged) {
-                Logger.debug(
-                    "Context changed from",
-                    lastContextUri,
-                    "to",
-                    newContextUri
-                );
-                // TODO: if context doesn't change, just update song and track
-            }
+            Logger.debug(`lastContextUri: ${prevContextUri}`);
 
             const newContext: SavedContext = {
                 contextUri: newContextUri,
@@ -55,19 +42,22 @@ function startContextTracker() {
                 nextFrom,
             };
 
-            Logger.info(
-                `saving new context. current song: ${newContext.trackName}. next up: ${newContext.nextFrom?.[0]?.name}`
-            );
+            if (newContextUri !== prevContextUri) {
+                Logger.debug(
+                    `Context changed from ${prevContextUri} to ${newContextUri}`
+                );
 
-            if (newContext && newContext !== lastContext) {
-                if (lastContext) {
-                    pushContext(lastContext);
+                if (prevContext) {
+                    Logger.info(
+                        `pushing previous context to storage. playing: ${prevContext.trackName}. next up: ${prevContext.nextFrom?.[0]?.name}`
+                    );
+                    pushContext(prevContext);
                 }
-                lastContext = newContext;
+                prevContext = newContext;
             }
 
-            lastContextUri = data.context.uri;
-        }, 250); // 200–500ms is usually enough
+            prevContextUri = newContextUri;
+        }, 250); // delay so that when we call getQueue, it happens after the context is changed
     });
 }
 
@@ -130,7 +120,7 @@ async function addTracksToNextUpQueue(tracks: Spicetify.PlayerTrack[]) {
     await Spicetify.Platform.PlayerAPI.insertIntoQueue(uriObjects, {
         ...(beforeTrack.uri ? { before: beforeTrack } : {}),
     })
-        .then(() => Logger.info("Added to Play Next"))
+        .then(() => Logger.debug("Added to Play Next"))
         .catch((err) => {
             Logger.error("Failed to add to queue", err);
             Spicetify.showNotification("Unable to Add! Check Console.", true);
@@ -138,7 +128,7 @@ async function addTracksToNextUpQueue(tracks: Spicetify.PlayerTrack[]) {
 
     // remove the songs we replaced
     await Spicetify.Platform.PlayerAPI.removeFromQueue(replacedTracks)
-        .then(() => Logger.info("Removed from Play Next"))
+        .then(() => Logger.debug("Removed from Play Next"))
         .catch((err) => {
             Logger.error("Failed to remove from queue", err);
             Spicetify.showNotification("Unable to Add! Check Console.", true);
@@ -159,8 +149,8 @@ async function main() {
         "Go to previous context",
         "chevron-left",
         () => {
-            Spicetify.showNotification("Back");
             goBackToPreviousContext();
+            Spicetify.showNotification("Restored previous context");
         },
         false, // Whether the button is disabled.
         false // Whether the button is active.
