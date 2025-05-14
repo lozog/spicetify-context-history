@@ -23,5 +23,5 @@ export class Logger {
     }
 }
 
-Logger.ENABLED = true;
+Logger.ENABLED = false;
 Logger.VERBOSE = false;

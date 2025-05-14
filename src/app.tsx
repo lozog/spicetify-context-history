@@ -47,12 +47,10 @@ function startContextTracker() {
                     `Context changed from ${prevContextUri} to ${newContextUri}`
                 );
 
-                if (prevContext) {
-                    Logger.info(
-                        `pushing previous context to storage. playing: ${prevContext.trackName}. next up: ${prevContext.nextFrom?.[0]?.name}`
-                    );
-                    pushContext(prevContext);
-                }
+                Logger.info(
+                    `pushing new context to storage. playing: ${newContext.trackName}. next up: ${newContext.nextFrom?.[0]?.name}`
+                );
+                pushContext(newContext);
                 prevContext = newContext;
             }
 
